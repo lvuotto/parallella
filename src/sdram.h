@@ -20,8 +20,9 @@ struct ticks_s {
 } __attribute__((packed));
 
 struct msg_s {
-  ticks_t  ticks[16];
-  uint32_t finished;
+  ticks_t      ticks[16];
+  unsigned int v[4];
+  uint32_t     finalizado;
 } __attribute__((packed));
 
 

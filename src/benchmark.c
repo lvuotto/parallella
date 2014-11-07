@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <e-hal.h>
 
-#include "msg.h"
+#include "sdram.h"
 
 
 /*
@@ -22,8 +21,7 @@ static inline uint32_t rdtsc32 (void) {
 
 void benchmark(e_platform_t *platform,
                e_epiphany_t *device,
-               char *wrfn,
-               char *rdfn);
+               char *srec);
 
 
 int main()
@@ -36,15 +34,9 @@ int main()
 
   e_epiphany_t device;
   e_open(&device, 0, 0, platform.rows, platform.cols);
-  
-  puts("Epiphany plano");
-  puts("--------------");
-  benchmark(&platform, &device, "e_write.srec", "e_read.srec");
-  
-  puts("");
-  puts("Assembler inline");
-  puts("----------------");
-  benchmark(&platform, &device, "e_write_asm.srec", "e_read_asm.srec");
+
+  benchmark(&platform, &device, "e_read.srec");
+  benchmark(&platform, &device, "e_read_dma.srec");
   
   e_close(&device);
   e_finalize();
@@ -55,69 +47,35 @@ int main()
 
 void benchmark(e_platform_t *platform,
                e_epiphany_t *device,
-               char *wrfn,
-               char *rdfn)
+               char *srec)
 {
-  int status;
-  unsigned int tcore;
-  static msg_t msg;
-  e_mem_t mem;
-  
+  msg_t msg;
   memset(&msg, 0, sizeof(msg));
-  e_alloc(&mem, BMMI_ADDRESS, sizeof(msg));
-  e_write(&mem, 0, 0, 0, &msg, sizeof(msg));
- 
-  e_reset_group(device);
-  status = e_load(wrfn, device, 0, 0, E_TRUE);
 
-  if (status != E_OK) {
+  e_write(device, 0, 0, 0x4000, &msg, sizeof(msg));
+
+  e_reset_group(device);
+  if (e_load(srec, device, 0, 0, E_TRUE) != E_OK) {
     fprintf(stderr, "Hubo un error al cargar.\n");
     exit(1);
   }
 
   do {
-    e_read(&mem, 0, 0, 0, &msg, sizeof(msg));
-  } while (!msg.finished);
+    e_read(device, 0, 0, 0x4000, &msg, sizeof(msg));
+  } while (!msg.finalizado);
 
-  puts("  WR");
   for (unsigned int row = 0; row < platform->rows; row++) {
     for (unsigned int col = 0; col < platform->cols; col++) {
-      tcore = row*platform->cols + col;
-      printf("  tcore#%-2u: t32=%.3f, t16=%.3f, t8=%.3f\n",
+      unsigned int tcore = row * platform->cols + col;
+      printf("  tcore#%x:  t64: %.3f,  t32: %.3f,  t16: %.3f,  t8: %.3f,\n"
+             "           ua64: %.3f, ua32: %.3f, ua16: %.3f, ua8: %.3f,\n"
+             "           v[0]: %x, v[1]: %u, v[2]: %u, v[3]: %u\n",
              tcore,
-             msg.ticks[tcore].t32,
-             msg.ticks[tcore].t16,
-             msg.ticks[tcore].t8);
+             msg.ticks[tcore].t64,  msg.ticks[tcore].t32,
+             msg.ticks[tcore].t16,  msg.ticks[tcore].t8,
+             msg.ticks[tcore].ua64, msg.ticks[tcore].ua32,
+             msg.ticks[tcore].ua16, msg.ticks[tcore].ua8,
+             msg.v[0], msg.v[1], msg.v[2], msg.v[3]);
     }
   }
-
-  e_reset_group(device);
-  memset(&msg, 0, sizeof(msg));
-  status = e_load(rdfn, device, 0, 0, E_TRUE);
-
-  if (status != E_OK) {
-    fprintf(stderr, "Hubo un error al cargar.\n");
-    exit(1);
-  }
-
-  nano_wait(0, 10000000);
-
-  do {
-    e_read(&mem, 0, 0, 0, &msg, sizeof(msg));
-  } while (!msg.finished);
-  
-  puts("");
-  puts("  RD");
-  for (unsigned int row = 0; row < platform->rows; row++) {
-    for (unsigned int col = 0; col < platform->cols; col++) {
-      tcore = row*platform->cols + col;
-      printf("  tcore#%-2u: t32=%.3f, t16=%.3f, t8=%.3f\n",
-             tcore,
-             msg.ticks[tcore].t32,
-             msg.ticks[tcore].t16,
-             msg.ticks[tcore].t8);
-    }
-  }
-
-  e_free(&mem);
 }

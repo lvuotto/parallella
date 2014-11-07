@@ -3,13 +3,13 @@ ELIBS=$(ESDK)/tools/host/lib
 EINCS=$(ESDK)/tools/host/include
 ELDF=$(ESDK)/bsps/current/internal.ldf
 BINS=benchmark tiempos 
-DEPS=e_read.srec
-OBJS=e_read.elf
+DEPS=e_read.srec e_read_dma.srec
+OBJS=e_read.elf  e_read_dma.elf
 
 CC=gcc
 ECC=e-gcc
 EOC=e-objcopy
-CFLAGS=-Wall -Wextra -Werror -pedantic -ggdb -std=c99 -Wl,-rpath,$(ELIBS)
+CFLAGS=-Wall -Wextra -pedantic -ggdb -O0 -std=c99 -Wl,-rpath,$(ELIBS)
 EFLAGS=-funroll-loops -ffast-math
 EOFLAGS=--srec-forceS3 --output-target srec
 
