@@ -2,9 +2,9 @@ ESDK=$(EPIPHANY_HOME)
 ELIBS=$(ESDK)/tools/host/lib
 EINCS=$(ESDK)/tools/host/include
 ELDF=$(ESDK)/bsps/current/internal.ldf
-BINS=benchmark tiempos 
-DEPS=e_read.srec e_read_dma.srec
-OBJS=e_read.elf  e_read_dma.elf
+BINS=benchmark
+DEPS=e_read.srec e_read_dma.srec e_read_asm.srec
+OBJS=e_read.elf  e_read_dma.elf  e_read_asm.elf
 
 CC=gcc
 ECC=e-gcc

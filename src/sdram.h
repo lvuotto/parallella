@@ -2,7 +2,7 @@
 #define __MSG_H__
 
 
-#include <stdint.h>
+#include <inttypes.h>
 
 
 typedef struct ticks_s ticks_t;
@@ -17,12 +17,16 @@ struct ticks_s {
   double   ua32;
   double   ua16;
   double   ua8;
+  double   c64;
+  double   c32;
+  double   c16;
+  double   c8;
 } __attribute__((packed));
 
 struct msg_s {
-  ticks_t      ticks[16];
-  unsigned int v[4];
-  uint32_t     finalizado;
+  uint32_t v[4];
+  ticks_t  ticks[16];
+  uint32_t finalizado;
 } __attribute__((packed));
 
 

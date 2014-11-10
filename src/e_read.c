@@ -6,8 +6,9 @@
 #define E_COLS e_group_config.group_cols
 #define VECES                      10000
 #define DUMMY_WAIT                  5000
-#define MEM_ALINEADA              0x7000
-#define MEM_NO_ALINEADA           0x7003
+#define MEM_ALINEADA              0x6000
+#define MEM_NO_ALINEADA           0x6003
+#define MEM_A_CABALLO             0x5fff
 
 
 int main()
@@ -109,6 +110,50 @@ int main()
       e_ctimer_stop(E_CTIMER_0);
       dt = E_CTIMER_MAX - e_ctimer_get(E_CTIMER_0);
       m->ticks[tcore].ua8 = (dt - DUMMY_WAIT) / (double) VECES;
+
+      e_ctimer_set(E_CTIMER_0, E_CTIMER_MAX);
+      e_ctimer_start(E_CTIMER_0, E_CTIMER_CLK);
+      for (int i = 0; i < VECES; i++)
+        e_read(&e_group_config, &d64,
+               row, col,
+               (uint64_t *) MEM_A_CABALLO, sizeof(d64));
+      e_wait(E_CTIMER_1, DUMMY_WAIT);
+      e_ctimer_stop(E_CTIMER_0);
+      dt = E_CTIMER_MAX - e_ctimer_get(E_CTIMER_0);
+      m->ticks[tcore].c64 = (dt - DUMMY_WAIT) / (double) VECES;
+
+      e_ctimer_set(E_CTIMER_0, E_CTIMER_MAX);
+      e_ctimer_start(E_CTIMER_0, E_CTIMER_CLK);
+      for (int i = 0; i < VECES; i++)
+        e_read(&e_group_config, &d32,
+               row, col,
+               (uint32_t *) MEM_A_CABALLO, sizeof(d32));
+      e_wait(E_CTIMER_1, DUMMY_WAIT);
+      e_ctimer_stop(E_CTIMER_0);
+      dt = E_CTIMER_MAX - e_ctimer_get(E_CTIMER_0);
+      m->ticks[tcore].c32 = (dt - DUMMY_WAIT) / (double) VECES;
+
+      e_ctimer_set(E_CTIMER_0, E_CTIMER_MAX);
+      e_ctimer_start(E_CTIMER_0, E_CTIMER_CLK);
+      for (int i = 0; i < VECES; i++)
+        e_read(&e_group_config, &d16,
+               row, col,
+               (uint16_t *) MEM_A_CABALLO, sizeof(d16));
+      e_wait(E_CTIMER_1, DUMMY_WAIT);
+      e_ctimer_stop(E_CTIMER_0);
+      dt = E_CTIMER_MAX - e_ctimer_get(E_CTIMER_0);
+      m->ticks[tcore].c16 = (dt - DUMMY_WAIT) / (double) VECES;
+
+      e_ctimer_set(E_CTIMER_0, E_CTIMER_MAX);
+      e_ctimer_start(E_CTIMER_0, E_CTIMER_CLK);
+      for (int i = 0; i < VECES; i++)
+        e_read(&e_group_config, &d8,
+               row, col,
+               (uint8_t *) MEM_A_CABALLO, sizeof(d8));
+      e_wait(E_CTIMER_1, DUMMY_WAIT);
+      e_ctimer_stop(E_CTIMER_0);
+      dt = E_CTIMER_MAX - e_ctimer_get(E_CTIMER_0);
+      m->ticks[tcore].c8 = (dt - DUMMY_WAIT) / (double) VECES;
     }
   }
   m->finalizado = E_TRUE;
